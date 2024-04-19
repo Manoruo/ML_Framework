@@ -1,13 +1,16 @@
 from .. import np
-from ..Layer import Layer
+from .Core import Core
 
-class Dense(Layer):
+class Dense(Core):
 
     def __init__(self, feature_size, neurons):
 
         # set weights and bias arrays and normalize them for faster convergence 
         self.weights = np.random.randn(neurons, feature_size) / np.sqrt(feature_size + neurons)
         self.bias = np.random.randn(1, neurons) / np.sqrt(feature_size + neurons)
+
+        self.num_neurons = neurons
+        self.num_features = feature_size
 
         self.inputs = None 
         self.output = None 
@@ -32,4 +35,14 @@ class Dense(Layer):
         self.weights = self.weights - (learning_rate * dw)
         self.bias = self.bias - (learning_rate * db)
 
-        return dx  
+        return dx 
+    
+    def get_input_size(self):
+        return (self.num_features)
+    
+    def get_output_size(self):
+        return (self.num_neurons)
+    
+    def get_num_parameters(self):
+        return (self.num_features * self.num_neurons) + self.num_neurons
+        

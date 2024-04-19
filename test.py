@@ -3,7 +3,6 @@ from neural.Losses import MSE
 from neural.Layers import Dense, TanH, RELU
 import numpy as np 
 
-
 # training data
 x_train = np.array([[0,0], [0,1], [1,0], [1,1]])
 y_train = np.array([0, 1, 1, 0])
@@ -15,6 +14,10 @@ net = Sequential([
     Dense(3, 1),
     TanH()])
 
+net.display_network()
+
 # train
 net.fit(x_train, y_train, epochs=1000, learning_rate=0.1, loss_func=MSE())
+
+
 
