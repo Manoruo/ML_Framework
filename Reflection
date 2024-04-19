@@ -4,3 +4,9 @@ What I've Learned
 1. Creating + Managing Python Package with __init__.py 
 2. Git Ignore files 
 3. Creating Dashboards
+
+1. Add Batching
+2. Add Cross Entropy 
+3. Fix print out during training 
+3. Look into Optimizers 
+4. Add Dataset Loader + Preprocessing 

@@ -1,7 +1,6 @@
 from . import np
-from ..Layers.Layer import Layer
-from ..Layers.Activations.Activation import Activation
-from ..Layers.Core.Core import Core
+from ..layers.Layer import Layer
+from ..layers.core.Core import Core
 from ..utils.visualization import NNV
 from tqdm import tqdm
 
@@ -22,7 +21,7 @@ class Sequential():
         self.core_layers = [layer for layer in self.layers if isinstance(layer, Core)]
         assert len(self.core_layers) > 0, "Model must have at least one Core Layer"
 
-        self.visualizer =  NNV(layers_list=self._get_render_info(), spacing_nodes=5)
+        self.visualizer = None
     
     def forward(self, x):
         out = x 
@@ -59,6 +58,8 @@ class Sequential():
                 print('epoch %d/%d   error=%f' % (i+1, epochs, err))
 
     def display_network(self):
+        if not self.visualizer:
+            self.visualizer = NNV(layers_list=self._get_render_info(), spacing_nodes=5)
         self.visualizer.render()
 
     def _get_render_info(self):

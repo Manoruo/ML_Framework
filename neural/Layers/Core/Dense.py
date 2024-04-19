@@ -3,17 +3,33 @@ from .Core import Core
 
 class Dense(Core):
 
-    def __init__(self, feature_size, neurons):
+    def __init__(self, num_features, num_neurons):
+
+        # set the neurons + input features
+        self.num_neurons = num_neurons
+        self.num_features = num_features
+        
+        # weights + bias for the layer will be set later 
+        self.weights = None 
+        self.bias = None 
+
+        # track what comes in and goes out of layer
+        self.inputs = None 
+        self.output = None
+
+        # initalize weights + bias
+        self._init_parameters(num_features, num_neurons) 
+
+    def _init_parameters(self, num_features, num_neurons):
+
+        #setup features + neurons
+        self.num_neurons = num_neurons
+        self.num_features = num_features
 
         # set weights and bias arrays and normalize them for faster convergence 
-        self.weights = np.random.randn(neurons, feature_size) / np.sqrt(feature_size + neurons)
-        self.bias = np.random.randn(1, neurons) / np.sqrt(feature_size + neurons)
+        self.weights = np.random.randn(num_neurons, num_features) / np.sqrt(num_features + num_neurons)
+        self.bias = np.random.randn(1, num_neurons) / np.sqrt(num_features + num_neurons)
 
-        self.num_neurons = neurons
-        self.num_features = feature_size
-
-        self.inputs = None 
-        self.output = None 
 
     def forward(self, x):
         # inputs @ weights.T so each row is output of neurons at a given layer + bias
