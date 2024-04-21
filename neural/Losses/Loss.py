@@ -7,6 +7,6 @@ class Loss(ABC):
         pass 
     
     @abstractmethod
-    def get_loss_prime(y_act, y_pred):
+    def get_loss_prime(self, y_act, y_pred):
         pass
     
