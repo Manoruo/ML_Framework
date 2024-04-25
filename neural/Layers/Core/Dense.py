@@ -2,7 +2,7 @@ from .. import np
 from .Core import Core
 
 class Dense(Core):
-
+    # you can use * to specify how many features. I want to be able to just specify the neurons and have the model automaticlaly figure out input sizes
     def __init__(self, num_features, num_neurons):
 
         # set the neurons + input features

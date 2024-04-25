@@ -1,29 +1,38 @@
 from neural.containers import Sequential
-import neural.containers
-import neural.layers
-from neural.losses import MSE
-from neural.layers import Dense, TanH, RELU
-import numpy as np 
-import neural
-import neural.losses as loss 
-loss.MSE()
+from neural.losses import CE
+from neural.utils.preprocessing import OneHotEncoder
+from neural.layers import RELU, Softmax, Dense, TanH, Sigmoid
+import datasets.spiral_data as sd 
+from sklearn.model_selection import train_test_split
 
-# training data
-x_train = np.array([[0,0], [0,1], [1,0], [1,1]])
-y_train = np.array([0, 1, 1, 0])
+num_classes = 5 
 
-# network
-net = Sequential([
-    Dense(2, 3),
-    RELU(),
-    Dense(3, 1),
-    TanH()])
+(x, y) = sd.generate_spiral_data(n_samples=100, n_class=num_classes)
 
-net.display_network()
+# encode the y's
+encoder = OneHotEncoder()
+encoder.fit(y)
+y_encoded = encoder.encode(y)
 
-print(Dense(2, 3).forward(x_train))
-# train
-net.fit(x_train, y_train, epochs=1000, learning_rate=0.1, loss_func=MSE())
+X_train, X_test, y_train, y_test = train_test_split(x, y_encoded, test_size=.2)
 
 
+
+model = Sequential([
+    Dense(2, 5),
+    TanH(),
+    Dense(5, 8),
+    TanH(),
+    Dense(8, num_classes),
+    Softmax()
+])
+
+#model.display_network()
+
+model.fit(X_train, y_train, 1000, .001, CE())
+
+
+y_pred = encoder.decode(model.predict(X_test))
+y_act = encoder.decode(y_test)
+print(sum(y_pred == y_act) / len(y_test))
 

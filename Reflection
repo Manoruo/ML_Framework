@@ -6,7 +6,5 @@ What I've Learned
 3. Creating Dashboards
 
 1. Add Batching
-2. Add Cross Entropy 
-3. Fix print out during training 
-3. Look into Optimizers 
-4. Add Dataset Loader + Preprocessing 
+2. Fix Softmax 
+5. Add decision boundry 

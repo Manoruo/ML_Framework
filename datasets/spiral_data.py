@@ -1,4 +1,5 @@
 import numpy as np 
+import matplotlib.pyplot as plt 
 
 def generate_spiral_data(n_samples, n_class=2, noise=0.5):
     """
@@ -23,8 +24,11 @@ def generate_spiral_data(n_samples, n_class=2, noise=0.5):
         y[ix] = i
     return X, y
 
-def plot_spiral(ax, x_data, y_data, num_classes, title="Spiral Dataset", correct=None):
+def plot_spiral(x_data, y_data, num_classes, ax=None, title="Spiral Dataset", correct=None):
     
+    if not ax:
+        fig, ax = plt.subplots()
+
     # plot points 
     for class_index in range(num_classes):
         ax.scatter(x_data[y_data == class_index, 0], x_data[y_data == class_index, 1], label=f'Class {class_index}')
@@ -38,3 +42,4 @@ def plot_spiral(ax, x_data, y_data, num_classes, title="Spiral Dataset", correct
     ax.set_ylabel('X2')
     ax.set_title(title)
     ax.legend()
+    plt.show()

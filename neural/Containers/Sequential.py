@@ -37,12 +37,13 @@ class Sequential():
         samples = len(x_train)
 
         # training loop
-        for i in tqdm(range(epochs)):
+        for i in range(epochs):
             err = 0
             for sample, y_act in zip(x_train, y_train):
-
+                y_act, sample = np.array([y_act]), np.array([sample]) # model expects row vector, add another dimesnion to avoid errors
+                
                 # forward propagation (model expects a 2D list, where each element is a sample. Add another dimmension to indvidual sample to prevent it from erroring)
-                y_pred = self.forward(np.array([sample]))
+                y_pred = self.forward(np.array(sample))
 
                 # compute loss (for display only)
                 err += loss_func.get_loss(y_act, y_pred)
@@ -51,11 +52,11 @@ class Sequential():
                 error = loss_func.get_loss_prime(y_act, y_pred)
                 for layer in reversed(self.layers):
                     error = layer.backward(error, learning_rate)
-
+                
             # calculate average error on all samples
             if (i + 1) % 100 == 0 or i == 0:
                 err /= samples
-                print('epoch %d/%d   error=%f' % (i+1, epochs, err))
+                print(f"Epoch {i}/{epochs}, Loss: {err:.4f}")
 
     def display_network(self):
         if not self.visualizer:
