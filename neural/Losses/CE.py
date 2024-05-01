@@ -20,8 +20,8 @@ class CE(Loss):
         assert y_act.shape == y_pred.shape, f"Shape of Label ({y_act.shape}) and model output ({y_pred.shape}) must match"
         # Assuming y_pred and y_act are NumPy arrays of shape (n,) or (n, m)
         y_pred = np.maximum(y_pred, 1e-10)  # Prevent any predicted values from being 0. Basically if you're a negative or 0 value, assume thats very bad (loss should be large)
-        confidence_loss = -np.log(y_pred) # how confident our model is (we want y_pred to be a large as possible for the correct label)
-        total_loss = np.sum(y_act * confidence_loss)  # Calculate cross-entropy loss 
+        confidence_loss = np.log(y_pred) # how confident our model is (we want y_pred to be a large as possible for the correct label)
+        total_loss = -np.sum(y_act * confidence_loss)  # Calculate cross-entropy loss 
         
         # determine the number of samples
         n = len(y_act) if len(y_act.shape) > 1 else 1  
@@ -41,5 +41,6 @@ class CE(Loss):
             - gradient: Gradient of cross-entropy loss with respect to predicted probabilities (numpy array of shape (N,))
         """
 
-        #y_pred = np.maximum(y_pred, 1e-10) # prevent divide by 0 error
-        return y_pred - y_act
+        y_pred = np.maximum(y_pred, 1e-10) # prevent divide by 0 error
+        result = -y_act / (y_pred)
+        return result

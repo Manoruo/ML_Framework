@@ -24,7 +24,7 @@ def generate_spiral_data(n_samples, n_class=2, noise=0.5):
         y[ix] = i
     return X, y
 
-def plot_spiral(x_data, y_data, num_classes, ax=None, title="Spiral Dataset", correct=None):
+def plot_spiral(x_data, y_data, num_classes, ax=None, title="Spiral Dataset", correct=None, render=True):
     
     if not ax:
         fig, ax = plt.subplots()
@@ -42,4 +42,6 @@ def plot_spiral(x_data, y_data, num_classes, ax=None, title="Spiral Dataset", co
     ax.set_ylabel('X2')
     ax.set_title(title)
     ax.legend()
-    plt.show()
+
+    if render:
+        plt.show()
