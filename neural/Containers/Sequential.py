@@ -2,6 +2,7 @@ from . import np
 from ..layers.Layer import Layer
 from ..layers.core.Core import Core
 from ..utils.visualization import NNV
+from ..metrics.accuracy import sparse_accuracy, categorical_accuracy
 from tqdm import tqdm
 
 
@@ -32,13 +33,24 @@ class Sequential():
     def predict(self, x):
         return self.forward(x)
     
-    def fit(self, x_train, y_train, epochs, learning_rate, loss_func):
+    def fit(self, x_train, y_train, epochs, learning_rate, loss_func, accuracy='sparse'):
         # sample dimension first
         samples = len(x_train)
+
+        # setup trackers + accuracy function
+        loss_tracker = []
+        accuracy_tracker = []
+        accuracy_func = None 
+
+        if accuracy == 'sparse':
+            accuracy_func = sparse_accuracy
+        elif accuracy == 'categorical':
+            accuracy_func = categorical_accuracy
 
         # training loop
         for i in range(epochs):
             err = 0
+            acc = 0
             for sample, y_act in zip(x_train, y_train):
                 y_act, sample = np.array([y_act]), np.array([sample]) # model expects row vector, add another dimesnion to avoid errors
                 
@@ -47,7 +59,7 @@ class Sequential():
 
                 # compute loss (for display only)
                 err += loss_func.get_loss(y_act, y_pred)
-
+                acc = (acc + accuracy_func(y_act, y_pred)) if accuracy_func is not None else np.nan
                 # backward propagation (performs gradient descent and updates weights+bias too)
                 error = loss_func.get_loss_prime(y_act, y_pred)
                 for layer in reversed(self.layers):
@@ -55,8 +67,14 @@ class Sequential():
                 
             # calculate average error on all samples
             if (i + 1) % 100 == 0 or i == 0:
+                # track loss and accuracy
                 err /= samples
-                print(f"Epoch {i}/{epochs}, Loss: {err:.4f}")
+                acc /= samples
+                loss_tracker.append(err)
+                accuracy_tracker.append(acc)
+
+                # display message
+                print(f"Epoch {i}/{epochs}, Loss: {err:.4f}, Accuracy: {acc:.4f}")
 
     def display_network(self):
         if not self.visualizer:
