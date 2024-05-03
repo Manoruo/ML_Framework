@@ -65,17 +65,18 @@ class Sequential():
                 for layer in reversed(self.layers):
                     error = layer.backward(error, learning_rate)
                 
-            # calculate average error on all samples
+            
+            # calculate average error + accuracy on all samples
+            err /= samples
+            acc /= samples
+            loss_tracker.append(err)
+            accuracy_tracker.append(acc)
+            
+            # print message
             if (i + 1) % 100 == 0 or i == 0:
-                # track loss and accuracy
-                err /= samples
-                acc /= samples
-                loss_tracker.append(err)
-                accuracy_tracker.append(acc)
-
-                # display message
                 print(f"Epoch {i}/{epochs}, Loss: {err:.4f}, Accuracy: {acc:.4f}")
-
+            
+        return loss_tracker, accuracy_tracker
     def display_network(self):
         if not self.visualizer:
             self.visualizer = NNV(layers_list=self._get_render_info(), spacing_nodes=5)

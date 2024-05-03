@@ -1,4 +1,4 @@
-from .. import np
+from . import np
 
 
 def categorical_accuracy(y_act, y_pred):
