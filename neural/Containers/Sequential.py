@@ -1,6 +1,8 @@
 from . import np
 from ..layers.Layer import Layer
 from ..layers.core.Core import Core
+from ..layers.activations.Activation import Activation
+from ..layers.other import Reshape
 from ..utils.visualization import NNV
 from ..metrics.accuracy import sparse_accuracy, categorical_accuracy
 from tqdm import tqdm
@@ -9,11 +11,12 @@ from tqdm import tqdm
 OUTPUT_LAYER_NAME = 'output'
 INPUT_LAYER_NAME = 'input'
 HIDDEN_LAYER_NAME = 'hidden'
-
+RESHAPE_LAYER_NAME = 'reshape'
 
 OUTPUT_LAYER_COLOR = 'red'
 INPUT_LAYER_COLOR = 'darkBlue'
 HIDDEN_LAYER_COLOR = 'black'
+RESHAPE_LAYER_COLOR = 'green'
 
 class Sequential():
 
@@ -55,7 +58,7 @@ class Sequential():
                 y_act, sample = np.array([y_act]), np.array([sample]) # model expects row vector, add another dimesnion to avoid errors
                 
                 # forward propagation (model expects a 2D list, where each element is a sample. Add another dimmension to indvidual sample to prevent it from erroring)
-                y_pred = self.forward(np.array(sample))
+                y_pred = self.forward(sample)
 
                 # compute loss (for display only)
                 err += loss_func.get_loss(y_act, y_pred)
@@ -100,10 +103,17 @@ class Sequential():
                 color = HIDDEN_LAYER_COLOR if x != last_layer else OUTPUT_LAYER_COLOR
                 units = x.get_output_size()
                 layersListInfo.append({"title": title, "units": units, "color": color})
-            else:
+            elif isinstance(x, Activation):
                 # activation function, add on to the title for current core layer
                 activation_func_name = str(type(x).__name__)
                 layersListInfo[-1]['title'] += ('\n' + activation_func_name)
+            elif isinstance(x, Reshape):
+                title = RESHAPE_LAYER_NAME
+                color = RESHAPE_LAYER_COLOR
+                units = np.prod(x.out_shape)
+                layersListInfo.append({"title": title, "units": units, "color": color})
+            else:
+                raise Exception("Did not setup visual for layer type: {}".format(x.__class__.__name__))
 
         return layersListInfo
       

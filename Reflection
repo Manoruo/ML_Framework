@@ -6,4 +6,5 @@ What I've Learned
 3. Creating Dashboards
 
 1. Add Batching
-2. Reshape Layer
+3. Optimizers + momentum
+4. Create animation using 3blue1brown. Have it take one instance feed through network (showing output of each layer). Then backpropegate + update weights (show error maybe). Display loss going down and accuracy going up
