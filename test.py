@@ -30,7 +30,7 @@ model = Sequential([
 
 #model.display_network()
 if __name__ == '__main__': 
-    model.fit(X_train, y_train, 100, .01, CE(), batch_size=2)
+    model.fit(X_train, y_train, 1, .01, CE(), batch_size=64)
 
 
     y_pred = encoder.decode(model.predict(X_test))

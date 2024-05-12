@@ -49,15 +49,13 @@ class Sequential():
                 return same_layers 
         return False    
         
-    def forward(self, x, layers=None):
+    def forward(self, x):
         """
             Propogates input x through the layers in the 
             models layers or given array
         """
-        layers = layers or self.layers
-
         out = x 
-        for layer in layers:
+        for layer in self.layers:
             out = layer.forward(out)
         return out 
 
@@ -65,8 +63,6 @@ class Sequential():
         return self.forward(x)
     
     def fit(self, x_train, y_train, epochs, learning_rate, loss_func, accuracy='sparse', batch_size=32):
-        # sample dimension first
-        samples = len(x_train)
 
         # setup trackers + accuracy function
         loss_tracker = []
@@ -80,7 +76,7 @@ class Sequential():
         
         # batch the data together (shuffle if specified)
         batches = self.batch_data(x_train, y_train, batch_size)
-        pool = multiprocessing.Pool(NUM_WORKERS)
+        for layer in self.core_layers: layer.set_gradient_tracking(batch_size)
 
         # training loop
         for i in range(epochs):
@@ -88,69 +84,58 @@ class Sequential():
             acc = 0
 
             # loop through each batch, compute gradients and update
-            for batch in batches:
+            for batch_idx, batch in enumerate(batches):
+                print("Batch {} / {}".format(batch_idx, len(batches)))
+                batch_x, y_act = batch
+                num_samples = len(batch_x)
 
-                batch_samples, batch_labels = batch
+                # first do forward pass (passing through the batch)
+                y_pred = self.forward(batch_x)
+
+                err += loss_func.get_loss(y_act, y_pred)
+                acc = (acc + accuracy_func(y_act, y_pred)) if accuracy_func is not None else np.nan
+
+                # now compute loss 
+                error = loss_func.get_loss_prime(y_act, y_pred)
+
+                # compute gradients (back prop)
+                self.compute_gradient(num_samples, error)
                 
-                processes = [pool.apply_async(self.get_gradient, args=(sample, label, loss_func)) for sample, label in zip(batch_samples, batch_labels)]
-                result = [p.get() for p in processes]
+                # update layers 
+                for layer in self.core_layers:
+                    acc_dw, acc_db = layer.get_gradients()
+                    dw = np.mean(acc_dw, axis=0)
+                    db = np.mean(acc_db, axis=0)
 
-
-                # extract gradients from results
-                layers_dw, layers_db = self._extract_grad_from_multiprocessed(result)
-                # average weights
-                for x in range(len(layers_dw)): 
-                    layers_dw[x] = layers_dw[x] / len(batch)
-                    layers_db[x] = layers_db[x] / len(batch)
-
-                for layer, dw, db in zip(self.core_layers, layers_dw, layers_db):
                     layer.weights = layer.weights - (learning_rate * dw)
-                    layer.bias = layer.bias - (learning_rate * db) 
-
-                err +=0 #loss_func.get_loss(y_act, y_pred)
-                acc = 0#(acc + accuracy_func(y_act, y_pred)) if accuracy_func is not None else np.nan
+                    layer.bias = layer.bias - (learning_rate * db)
                 
                 # we should have gradients now 
-
-            # calculate average error + accuracy on all samples
-            err /= samples
-            acc /= samples
+            
             loss_tracker.append(err)
             accuracy_tracker.append(acc)
             
             # print message
             if (i + 1) % 5 == 0 or i == 0:
-                print(f"Epoch {i}/{epochs}, Loss: {err:.4f}, Accuracy: {acc:.4f}")
+                print(f"Epoch {i}/{epochs}, Loss: {err / batch_size:.4f}, Accuracy: {acc / batch_size:.4f}")
             
         return loss_tracker, accuracy_tracker
     
-
-
-    def get_gradient(self, sample, label, loss_func):
-        # model expects row vector, add another dimesnion to avoid errors
-        y_act, sample = np.array([label]), np.array([sample]) 
-
-        # forward propagation
-        copy_layers = copy.deepcopy(self.layers)
-        y_pred = self.forward(sample, copy_layers)
-
-
-        # setup tracking
-        gradients = []
-
-        # backward propagation (calculate gradients for each layer starting from output)
-        error = loss_func.get_loss_prime(y_act, y_pred)
-        for layer in reversed(copy_layers):
-            error = layer.backward(error, 1)
-            if isinstance(layer, Core):
-                dw = layer.last_gradient_w
-                db = layer.last_gradient_b
-                gradients.append((dw, db))
+    def compute_gradient(self, num_inputs, error):
+        # error is a matrix with the error produced by the loss function for num_input samples
+        # each row in error is the error produced by the loss function for a given sample 
         
-        # gradients are calculated from last layer backwards, reverse it to make it easy to work with later
-        gradients.reverse()
-        return gradients
-                
+        # propegate error starting from last layer working backwards 
+        processes = [multiprocessing.Process(target=self.compute_gradient_helper, args=(i, error[i])) for i in range(num_inputs)]
+        for process in processes: process.start()
+        for process in processes: process.join()
+        #print('Done', flush=True)
+         
+
+    def compute_gradient_helper(self, idx, starting_error):
+        error = starting_error.reshape(1, -1)
+        for layer in reversed(self.layers):
+            error = layer.backward(error, idx)
 
     def batch_data(self, samples, labels, batch_size):
         """
@@ -212,8 +197,6 @@ class Sequential():
                 raise Exception("Did not setup visual for layer type: {}".format(x.__class__.__name__))
 
         return layersListInfo
-      
-    def _extract_grad_from_multiprocessed(self, result):
 
         # create lists so we can track
         layer_grads_w = [[]for _ in range(len(self.core_layers))]

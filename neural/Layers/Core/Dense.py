@@ -17,10 +17,6 @@ class Dense(Core):
         self.inputs = None 
         self.output = None
 
-        # track gradients during backprop
-        self.last_gradient_w = None
-        self.last_gradient_b = None 
-
         # initalize weights + bias
         self._init_parameters(num_features, num_neurons) 
 
@@ -44,24 +40,33 @@ class Dense(Core):
 
         self.inputs = x 
         self.output = out 
-
+        
         return out
     
-    def backward(self, error, learning_rate):
-        # assume the error is a row vector where each column (i) represents the "error" produced from the corresponding neuron (i) in the output layer
+    def backward(self, error, input_idx):
 
-        dw = error.T @ self.inputs # 2D matrix of size weight.size representing error produced by each weight
+        # assume the error is a row vector where each column (i) represents the "error" produced from the corresponding neuron (i) in the output layer
+        target = self.inputs[input_idx].reshape(1, -1)
+       
+        dw = error.T @ target # 2D matrix of size weight.size representing error produced by each weight
         db = error # row vector representing error produced by bias
         dx = error @ self.weights # row vector representing sum of error produced by previous nueron i -> dL/dxi where i is the index of previous nueron (no need to transpose weights, since matrix multiply will use the column of the weight which is the weights associated with input from nueron i)
         
         
         #self.weights = self.weights - (learning_rate * dw)
         #self.bias = self.bias - (learning_rate * db)
-        self.last_gradient_w = dw 
-        self.last_gradient_b = db 
         
+        self.dw_gradients[input_idx] = self.dw_gradients[input_idx] + dw 
+        self.db_gradients[input_idx] = self.db_gradients[input_idx] + db 
+
         return dx
     
+    def get_gradients(self):
+        return self.dw_gradients, self.db_gradients
+
+    def set_gradient_tracking(self, size):
+        self.dw_gradients = np.zeros((size, self.weights.shape[0], self.weights.shape[1]))
+        self.db_gradients = np.zeros((size, self.bias.shape[0], self.bias.shape[1])) 
 
     def get_input_size(self):
         return (self.num_features)
