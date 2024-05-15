@@ -4,10 +4,11 @@ from neural.utils.preprocessing import OneHotEncoder
 from neural.layers import RELU, Softmax, Dense, TanH, Sigmoid
 import datasets.spiral_data as sd 
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt 
 
 num_classes = 5 
 
-(x, y) = sd.generate_spiral_data(n_samples=100, n_class=num_classes)
+(x, y) = sd.generate_spiral_data(n_samples=100, n_class=num_classes, noise=.1)
 
 # encode the y's
 encoder = OneHotEncoder()
@@ -29,8 +30,10 @@ model = Sequential([
 
 #model.display_network()
 
-model.fit(X_train, y_train, 1000, .001, CE())
-
+loss, acc = model.fit(X_train, y_train, 1000, .001, CE(), accuracy="categorical")
+plt.plot(loss, label='Loss')
+plt.plot(acc, label='accuracy')
+plt.show()
 
 y_pred = encoder.decode(model.predict(X_test))
 y_act = encoder.decode(y_test)

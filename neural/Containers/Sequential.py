@@ -36,10 +36,8 @@ class Sequential():
     def predict(self, x):
         return self.forward(x)
     
-    def fit(self, x_train, y_train, epochs, learning_rate, loss_func, accuracy='sparse'):
-        # sample dimension first
-        samples = len(x_train)
-
+    def fit(self, x_train, y_train, epochs, learning_rate, loss_func, accuracy='sparse', batch_size=32):
+ 
         # setup trackers + accuracy function
         loss_tracker = []
         accuracy_tracker = []
@@ -50,28 +48,47 @@ class Sequential():
         elif accuracy == 'categorical':
             accuracy_func = categorical_accuracy
 
+        # batch
+        batches = self.batch_data(x_train, y_train, batch_size)
+        num_batches = len(batches)
+
         # training loop
         for i in range(epochs):
             err = 0
             acc = 0
-            for sample, y_act in zip(x_train, y_train):
-                y_act, sample = np.array([y_act]), np.array([sample]) # model expects row vector, add another dimesnion to avoid errors
-                
-                # forward propagation (model expects a 2D list, where each element is a sample. Add another dimmension to indvidual sample to prevent it from erroring)
-                y_pred = self.forward(sample)
 
-                # compute loss (for display only)
-                err += loss_func.get_loss(y_act, y_pred)
-                acc = (acc + accuracy_func(y_act, y_pred)) if accuracy_func is not None else np.nan
-                # backward propagation (performs gradient descent and updates weights+bias too)
-                error = loss_func.get_loss_prime(y_act, y_pred)
-                for layer in reversed(self.layers):
-                    error = layer.backward(error, learning_rate)
+            for batch in batches:
+                x, y = batch 
+
+                # accumlate gradients
+                for sample, y_act in zip(x, y):
+                    y_act, sample = y_act.reshape(1, -1), sample.reshape(1, -1) # model expects row vector, add another dimesnion to avoid errors
+
+                    # forward propagation
+                    y_pred = self.forward(sample)
+
+                    # backward propagation (performs gradient descent and updates weights+bias too)
+                    error = loss_func.get_loss_prime(y_act, y_pred)
+                    for layer in reversed(self.layers):
+                        error = layer.backward(error, learning_rate)
                 
-            
-            # calculate average error + accuracy on all samples
-            err /= samples
-            acc /= samples
+                # update gradients 
+                for layer in self.core_layers:
+                    layer.weights = layer.weights - (learning_rate * layer.gradient_dw)
+                    layer.bias = layer.bias - (learning_rate * layer.bias)
+                    layer.clear_gradients()
+
+
+                # compute avg loss + acc for current batch (for display only)
+                y_pred = self.forward(x)
+                err += loss_func.get_loss(y, y_pred)
+                acc = (acc + accuracy_func(y, y_pred))  if accuracy_func is not None else np.nan
+                
+            # normalize metrics
+            err /= num_batches
+            acc /= num_batches 
+
+            # track loss + accuracy
             loss_tracker.append(err)
             accuracy_tracker.append(acc)
             
@@ -80,11 +97,36 @@ class Sequential():
                 print(f"Epoch {i}/{epochs}, Loss: {err:.4f}, Accuracy: {acc:.4f}")
             
         return loss_tracker, accuracy_tracker
+    
     def display_network(self):
         if not self.visualizer:
             self.visualizer = NNV(layers_list=self._get_render_info(), spacing_nodes=5)
         self.visualizer.render()
 
+    def batch_data(self, samples, labels, batch_size):
+        """
+            Takes the samples and corresponding labels and creates batches.
+            Each batch is stored in a tuple within the returned list
+
+        """
+
+        assert len(samples) == len(labels), "sampes and labels are not the same size. Ensure that the labels passed correspond to the given samples"
+
+        # determine the number of compelte batches we can make and how many sampels we'd have left over
+        num_groups = len(samples) // batch_size
+        remainder = len(samples) % batch_size
+        
+        # create batch groups (store in a tuple)
+        batches = [(samples[i * batch_size: (i * batch_size) + batch_size], 
+                    labels[i * batch_size: (i * batch_size) + batch_size]) 
+                    for i in range(num_groups)]
+        
+        # add in remainder of samples + labels
+        if remainder > 0:
+            batches.append((samples[-remainder:], labels[-remainder:]))
+
+        return batches
+    
     def _get_render_info(self):
         # this creates "descriptions" for how to draw each layer. The descriptions are in the form of a dictionary with keys ['title', 'units', 'color']
 
