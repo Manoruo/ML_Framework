@@ -30,7 +30,7 @@ model = Sequential([
 
 #model.display_network()
 
-loss, acc = model.fit(X_train, y_train, 1000, .001, CE(), accuracy="categorical", batch_size=64)
+loss, acc = model.fit(X_train, y_train, 1000, .1, CE(), accuracy="categorical", batch_size=64)
 plt.plot(loss, label='Loss')
 plt.plot(acc, label='accuracy')
 plt.show()

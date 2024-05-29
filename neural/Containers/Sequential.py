@@ -74,8 +74,8 @@ class Sequential():
                 
                 # update gradients 
                 for layer in self.core_layers:
-                    layer.weights = layer.weights - (learning_rate * layer.gradient_dw)
-                    layer.bias = layer.bias - (learning_rate * layer.gradient_db)
+                    layer.weights = layer.weights - (learning_rate * (layer.gradient_dw / len(x)))
+                    layer.bias = layer.bias - (learning_rate * (layer.gradient_db / len(x)))
                     layer.clear_gradients()
 
 
