@@ -1,4 +1,5 @@
 from . import np
+from . import mp
 from ..layers.Layer import Layer
 from ..layers.core.Core import Core
 from ..layers.activations.Activation import Activation
@@ -74,8 +75,8 @@ class Sequential():
                 
                 # update gradients 
                 for layer in self.core_layers:
-                    layer.weights = layer.weights - (learning_rate * layer.gradient_dw)
-                    layer.bias = layer.bias - (learning_rate * layer.bias)
+                    layer.weights = layer.weights - (learning_rate * (layer.gradient_dw / len(sample)))
+                    layer.bias = layer.bias - (learning_rate * (layer.gradient_db / len(sample)))
                     layer.clear_gradients()
 
 

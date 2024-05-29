@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 num_classes = 5 
 
-(x, y) = sd.generate_spiral_data(n_samples=100, n_class=num_classes, noise=.1)
+(x, y) = sd.generate_spiral_data(n_samples=100, n_class=num_classes, noise=.4)
 
 # encode the y's
 encoder = OneHotEncoder()
@@ -33,6 +33,7 @@ model = Sequential([
 loss, acc = model.fit(X_train, y_train, 1000, .001, CE(), accuracy="categorical", batch_size=64)
 plt.plot(loss, label='Loss')
 plt.plot(acc, label='accuracy')
+plt.legend()
 plt.show()
 
 y_pred = encoder.decode(model.predict(X_test))

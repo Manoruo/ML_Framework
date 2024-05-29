@@ -1,4 +1,5 @@
 from .. import np
+from .. import mp
 from .Core import Core
 
 class Dense(Core):
@@ -17,6 +18,9 @@ class Dense(Core):
         self.inputs = None 
         self.output = None
         
+        #self.gradient_dw_queue = mp.Queue()
+        #self.gradient_db_queue = mp.Queue()
+
         # initalize weights + bias
         self._init_parameters(num_features, num_neurons) 
 
@@ -57,6 +61,9 @@ class Dense(Core):
         #self.bias = self.bias - (learning_rate * db)
         self.gradient_dw += dw 
         self.gradient_db += db 
+
+        #self.gradient_dw_queue.put(dw)
+        #self.gradient_db_queue.put(db)
 
         return dx 
 
