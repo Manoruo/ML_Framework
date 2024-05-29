@@ -16,7 +16,7 @@ class Dense(Core):
         # track what comes in and goes out of layer
         self.inputs = None 
         self.output = None
-
+        
         # initalize weights + bias
         self._init_parameters(num_features, num_neurons) 
 
@@ -29,6 +29,11 @@ class Dense(Core):
         # set weights and bias arrays and normalize them for faster convergence 
         self.weights = np.random.randn(num_neurons, num_features) / np.sqrt(num_features + num_neurons)
         self.bias = np.random.randn(1, num_neurons) / np.sqrt(num_features + num_neurons)
+
+        # set gradient tracking
+        self.gradient_dw = np.zeros(self.weights.shape)
+        self.gradient_db = np.zeros(self.bias.shape)
+
 
 
     def forward(self, x):
@@ -48,10 +53,16 @@ class Dense(Core):
         db = error # row vector representing error produced by bias
         dx = error @ self.weights # row vector representing sum of error produced by previous nueron i -> dL/dxi where i is the index of previous nueron (no need to transpose weights, since matrix multiply will use the column of the weight which is the weights associated with input from nueron i)
         
-        self.weights = self.weights - (learning_rate * dw)
-        self.bias = self.bias - (learning_rate * db)
+        #self.weights = self.weights - (learning_rate * dw)
+        #self.bias = self.bias - (learning_rate * db)
+        self.gradient_dw += dw 
+        self.gradient_db += db 
 
         return dx 
+
+    def clear_gradients(self):
+        self.gradient_dw = np.zeros(self.weights.shape)
+        self.gradient_db = np.zeros(self.bias.shape)
     
     def get_input_size(self):
         return (self.num_features)
