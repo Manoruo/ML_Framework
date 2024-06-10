@@ -13,8 +13,8 @@ class Reshape(Layer):
         new_shape = tuple([num_samples] + list(self.out_shape))
         return np.reshape(input, new_shape)
     
-    def backward(self, error, learning_rate):
-        return error.reshape(*self.input_shape)
+    def backward(self, error):
+        return (error.reshape(*self.input_shape), None, None)
 
 class Flatten(Reshape):
     def __init__(self, input_shape):

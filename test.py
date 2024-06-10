@@ -6,6 +6,9 @@ import datasets.spiral_data as sd
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt 
 
+
+
+
 num_classes = 5 
 
 (x, y) = sd.generate_spiral_data(n_samples=100, n_class=num_classes, noise=.4)
@@ -29,14 +32,18 @@ model = Sequential([
 ])
 
 #model.display_network()
+if __name__ == "__main__":
 
-loss, acc = model.fit(X_train, y_train, 1000, .001, CE(), accuracy="categorical", batch_size=64)
-plt.plot(loss, label='Loss')
-plt.plot(acc, label='accuracy')
-plt.legend()
-plt.show()
+    loss, acc = model.fit(X_train, y_train, 1000, .001, CE(), accuracy="categorical", batch_size=len(X_train))
+    plt.plot(loss, label='Loss')
+    plt.plot(acc, label='accuracy')
+    plt.legend()
+    plt.show()
 
-y_pred = encoder.decode(model.predict(X_test))
-y_act = encoder.decode(y_test)
-print(sum(y_pred == y_act) / len(y_test))
+    y_pred = encoder.decode(model.predict(X_test))
+    y_act = encoder.decode(y_test)
+    print(sum(y_pred == y_act) / len(y_test))
+
+
+
 

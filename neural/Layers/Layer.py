@@ -9,5 +9,5 @@ class Layer(ABC):
         pass
 
     @abstractmethod
-    def backward(self, error, learning_rate):
+    def backward(self, error):
         pass 

@@ -4,10 +4,11 @@ from ..layers.Layer import Layer
 from ..layers.core.Core import Core
 from ..layers.activations.Activation import Activation
 from ..layers.other import Reshape
+from ..layers.LayerCollection import LayerCollection
+from ..layers.Gradients import GradientCollection
 from ..utils.visualization import NNV
 from ..metrics.accuracy import sparse_accuracy, categorical_accuracy
-from tqdm import tqdm
-
+import multiprocessing
 
 OUTPUT_LAYER_NAME = 'output'
 INPUT_LAYER_NAME = 'input'
@@ -18,6 +19,11 @@ OUTPUT_LAYER_COLOR = 'red'
 INPUT_LAYER_COLOR = 'darkBlue'
 HIDDEN_LAYER_COLOR = 'black'
 RESHAPE_LAYER_COLOR = 'green'
+
+def process_item(item):
+    loss, layers, x, y = item
+    lc = LayerCollection(layers, loss)
+    return lc.get_gradient(x, y)
 
 class Sequential():
 
@@ -37,6 +43,7 @@ class Sequential():
     def predict(self, x):
         return self.forward(x)
     
+
     def fit(self, x_train, y_train, epochs, learning_rate, loss_func, accuracy='sparse', batch_size=32):
  
         # setup trackers + accuracy function
@@ -62,22 +69,15 @@ class Sequential():
                 x, y = batch 
 
                 # accumlate gradients
-                for sample, y_act in zip(x, y):
-                    y_act, sample = y_act.reshape(1, -1), sample.reshape(1, -1) # model expects row vector, add another dimesnion to avoid errors
+                results = []
+                pool = multiprocessing.Pool(processes=7)
+                a = [( loss_func, self.layers, sample.reshape(1, -1), y_act.reshape(1, -1)) for sample, y_act in zip(x, y)]
+                res = pool.map(process_item, a)
+                results.append(res)
+                pool.close()
+                pool.join()
 
-                    # forward propagation
-                    y_pred = self.forward(sample)
 
-                    # backward propagation (performs gradient descent and updates weights+bias too)
-                    error = loss_func.get_loss_prime(y_act, y_pred)
-                    for layer in reversed(self.layers):
-                        error = layer.backward(error, learning_rate)
-                
-                # update gradients 
-                for layer in self.core_layers:
-                    layer.weights = layer.weights - (learning_rate * (layer.gradient_dw / len(sample)))
-                    layer.bias = layer.bias - (learning_rate * (layer.gradient_db / len(sample)))
-                    layer.clear_gradients()
 
 
                 # compute avg loss + acc for current batch (for display only)

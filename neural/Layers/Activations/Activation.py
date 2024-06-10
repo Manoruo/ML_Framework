@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from ..Layer import Layer
+from . import np
 
 class Activation(Layer):
     def __init__(self):
@@ -19,6 +20,7 @@ class Activation(Layer):
         return self.outputs
 
     # no need for learning rate since we dont update any parameters here
-    def backward(self, error, learning_rate):
-        return error * self.activate_prime(error)
+    def backward(self, error):
+        dx = error * self.activate_prime(error)
+        return (dx, np.nan, np.nan)
     

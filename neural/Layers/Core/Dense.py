@@ -50,7 +50,7 @@ class Dense(Core):
 
         return out
     
-    def backward(self, error, learning_rate):
+    def backward(self, error):
         # assume the error is a row vector where each column (i) represents the "error" produced from the corresponding neuron (i) in the output layer
 
         dw = error.T @ self.inputs # 2D matrix of size weight.size representing error produced by each weight
@@ -65,7 +65,7 @@ class Dense(Core):
         #self.gradient_dw_queue.put(dw)
         #self.gradient_db_queue.put(db)
 
-        return dx 
+        return (dx, np.nan, np.nan) 
 
     def clear_gradients(self):
         self.gradient_dw = np.zeros(self.weights.shape)
