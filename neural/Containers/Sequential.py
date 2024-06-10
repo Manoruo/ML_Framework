@@ -6,7 +6,8 @@ from ..layers.other import Reshape
 from ..utils.visualization import NNV
 from ..metrics.accuracy import sparse_accuracy, categorical_accuracy
 from tqdm import tqdm
-
+import time 
+import multiprocessing
 
 OUTPUT_LAYER_NAME = 'output'
 INPUT_LAYER_NAME = 'input'
@@ -41,24 +42,25 @@ class Sequential():
         # setup trackers + accuracy function
         loss_tracker = []
         accuracy_tracker = []
-        accuracy_func = None 
-
-        if accuracy == 'sparse':
-            accuracy_func = sparse_accuracy
-        elif accuracy == 'categorical':
-            accuracy_func = categorical_accuracy
+        
+        accuracy_func = categorical_accuracy if accuracy == 'categorical' else sparse_accuracy
+   
 
         # batch
         batches = self.batch_data(x_train, y_train, batch_size)
         num_batches = len(batches)
+        
+        times = []
 
         # training loop
         for i in range(epochs):
             err = 0
             acc = 0
+            
 
             for batch in batches:
                 x, y = batch 
+                
 
                 # accumlate gradients
                 for sample, y_act in zip(x, y):
@@ -71,13 +73,16 @@ class Sequential():
                     error = loss_func.get_loss_prime(y_act, y_pred)
                     for layer in reversed(self.layers):
                         error = layer.backward(error, learning_rate)
+                start = time.time()
                 
+
                 # update gradients 
                 for layer in self.core_layers:
                     layer.weights = layer.weights - (learning_rate * (layer.gradient_dw / len(x)))
                     layer.bias = layer.bias - (learning_rate * (layer.gradient_db / len(x)))
                     layer.clear_gradients()
 
+                times.append(time.time() - start)
 
                 # compute avg loss + acc for current batch (for display only)
                 y_pred = self.forward(x)
@@ -91,12 +96,12 @@ class Sequential():
             # track loss + accuracy
             loss_tracker.append(err)
             accuracy_tracker.append(acc)
-            
+
             # print message
             if (i + 1) % 100 == 0 or i == 0:
                 print(f"Epoch {i}/{epochs}, Loss: {err:.4f}, Accuracy: {acc:.4f}")
             
-        return loss_tracker, accuracy_tracker
+        return loss_tracker, accuracy_tracker, times
     
     def display_network(self):
         if not self.visualizer:
