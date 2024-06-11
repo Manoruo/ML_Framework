@@ -49,8 +49,8 @@ class Sequential():
         # batch
         batches = self.batch_data(x_train, y_train, batch_size)
         num_batches = len(batches)
-        
         times = []
+
 
         # training loop
         for i in range(epochs):
@@ -98,7 +98,7 @@ class Sequential():
             accuracy_tracker.append(acc)
 
             # print message
-            if (i + 1) % 100 == 0 or i == 0:
+            if i % 10 == 0:
                 print(f"Epoch {i}/{epochs}, Loss: {err:.4f}, Accuracy: {acc:.4f}")
             
         return loss_tracker, accuracy_tracker, times

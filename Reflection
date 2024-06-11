@@ -1,10 +1,19 @@
-What I've Learned
-
-
+Programming Skills:
 1. Creating + Managing Python Package with __init__.py 
 2. Git Ignore files 
 3. Creating Dashboards
+4. App Development (maybe in Java)
 
-1. Add Batching
-3. Optimizers + momentum
-4. Create animation using 3blue1brown. Have it take one instance feed through network (showing output of each layer). Then backpropegate + update weights (show error maybe). Display loss going down and accuracy going up
+ML Skills:
+1. Forward Pass  (pass input through model)
+2. Backpropegation (retrieve gradients using chain rule principals)
+3. Gradient Descent ()
+
+4. Create animation using 3blue1brown. Have it take one instance feed through network (showing output of each layer). Then backpropegate + update weights (show error maybe). Display loss going down and accuracy going up: Find inspiration here: https://towardsdatascience.com/understanding-backpropagation-algorithm-7bb3aa2f95fd
+
+
+Milestones / Mini Projects:
+1. Create Weight Tunning Application to tune simple neural network to fit or divide data 
+2. AutoEncoder + Decoder (intermediate)
+3. "Image Creator" / predict the next pixel based on some starting point (pro)
+4. 
